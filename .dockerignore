@@ -1,0 +1,9 @@
+.venv
+__pycache__
+.git
+.env
+.env.example
+*.md
+Dockerfile
+k8s*.yaml
+tests

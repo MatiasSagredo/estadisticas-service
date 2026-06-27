@@ -8,6 +8,7 @@ los expone para el dashboard del frontend. Comparte BD y JWT con casino-backend.
 
 Prefijo de rutas: /api/estadisticas
 """
+from http.client import HTTPException
 import os
 from contextlib import asynccontextmanager
 
@@ -41,10 +42,19 @@ app.add_middleware(
 )
 
 
-# TODO (alumno): implementar las rutas de salud que usará Kubernetes:
-#   - liveness: ¿el proceso está vivo? (respuesta simple).
-#   - readiness: ¿está listo para recibir tráfico? Debe verificar la BD.
-# Luego configurar livenessProbe/readinessProbe en el Deployment de EKS.
+@app.get("/api/estadisticas/livez")
+def liveness():
+    return {"status": "alive"}
+
+@app.get("/api/estadisticas/readyz")
+def readiness():
+    try:
+        with conexion() as conn:
+            with dict_cursor(conn) as cur:
+                cur.execute("SELECT 1")
+                return {"status": "ready"}
+    except Exception:
+        raise HTTPException(status_code=503, detail="Se murio la DB :(")
 
 
 @app.get("/api/estadisticas/mias")
