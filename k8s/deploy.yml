@@ -6,7 +6,12 @@ metadata:
   labels:
     app: estadisticas-service
 spec:
-  replicas: 2
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: estadisticas-service
@@ -17,55 +22,29 @@ spec:
     spec:
       containers:
         - name: estadisticas
-          image: 802983641807.dkr.ecr.us-east-1.amazonaws.com/estadisticas/service:latest
+          image: 088950558880.dkr.ecr.us-east-1.amazonaws.com/casino/estadisticas:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8006
+          envFrom:
+            - secretRef:
+                name: casino-secrets
           resources:
             requests:
               cpu: "100m"
               memory: "128Mi"
             limits:
-              cpu: "200m"
+              cpu: "300m"
               memory: "256Mi"
-          env:
-            - name: PORT
-              value: "8006"
-            - name: DB_HOST
-              value: "postgres-service"
-            - name: DB_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: casino-secrets
-                  key: DB_NAME
-            - name: DB_USER
-              valueFrom:
-                secretKeyRef:
-                  name: casino-secrets
-                  key: DB_USER
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: casino-secrets
-                  key: DB_PASSWORD
-            - name: JWT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: casino-secrets
-                  key: JWT_SECRET
           readinessProbe:
             httpGet:
-              path: /readyz
+              path: /api/estadisticas/readyz
               port: 8006
             initialDelaySeconds: 5
-            periodSeconds: 10
-            timeoutSeconds: 2
-            failureThreshold: 3
+            periodSeconds: 5
           livenessProbe:
             httpGet:
-              path: /livez
+              path: /api/estadisticas/livez
               port: 8006
             initialDelaySeconds: 10
-            periodSeconds: 15
-            timeoutSeconds: 2
-            failureThreshold: 3
+            periodSeconds: 10
